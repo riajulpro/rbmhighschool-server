@@ -16,16 +16,16 @@ exports.updateUser = exports.changePassword = exports.verifyOtp = exports.forgot
 const bcryptjs_1 = __importDefault(require("bcryptjs"));
 const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
 const sendOtp_1 = require("../utils/sendOtp");
-const User_1 = require("../models/User");
+const user_1 = require("../models/user");
 const JWT_SECRET = process.env.JWT_SECRET || "your_jwt_secret";
 const register = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const { name, email, password, role } = req.body;
-        const existingUser = yield User_1.User.findOne({ email });
+        const existingUser = yield user_1.User.findOne({ email });
         if (existingUser)
             return res.status(400).json({ message: "User already exists" });
         const hashedPassword = yield bcryptjs_1.default.hash(password, 10);
-        const user = yield User_1.User.create({
+        const user = yield user_1.User.create({
             name,
             email,
             password: hashedPassword,
@@ -41,7 +41,7 @@ exports.register = register;
 const login = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const { email, password } = req.body;
-        const user = yield User_1.User.findOne({ email });
+        const user = yield user_1.User.findOne({ email });
         if (!user)
             return res.status(404).json({ message: "User not found" });
         const isMatch = yield bcryptjs_1.default.compare(password, user.password);
@@ -61,7 +61,7 @@ const otpStore = {}; // { email: otp }
 const forgotPassword = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const { email } = req.body;
-        const user = yield User_1.User.findOne({ email });
+        const user = yield user_1.User.findOne({ email });
         if (!user)
             return res.status(404).json({ message: "User not found" });
         const otp = Math.floor(100000 + Math.random() * 900000).toString();
@@ -88,7 +88,7 @@ exports.verifyOtp = verifyOtp;
 const changePassword = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const { email, newPassword } = req.body;
-        const user = yield User_1.User.findOne({ email });
+        const user = yield user_1.User.findOne({ email });
         if (!user)
             return res.status(404).json({ message: "User not found" });
         const hashedPassword = yield bcryptjs_1.default.hash(newPassword, 10);
@@ -107,7 +107,7 @@ const updateUser = (req, res) => __awaiter(void 0, void 0, void 0, function* () 
     try {
         const userId = req.params.id;
         const updates = req.body;
-        const user = yield User_1.User.findByIdAndUpdate(userId, updates, { new: true });
+        const user = yield user_1.User.findByIdAndUpdate(userId, updates, { new: true });
         if (!user)
             return res.status(404).json({ message: "User not found" });
         return res.json({ message: "User updated", user });
