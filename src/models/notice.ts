@@ -5,7 +5,7 @@ const noticeSchema = new Schema(
     title: String,
     content: String,
     createdBy: { type: Schema.Types.ObjectId, ref: "User" },
-    forRoles: [String], // ['student', 'teacher']
+    forRoles: [String],
   },
   { timestamps: true }
 );
