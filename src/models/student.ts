@@ -3,6 +3,7 @@ import { Schema, model, Document, Types } from "mongoose";
 export interface IStudent extends Document {
   userId: Types.ObjectId;
   class: string;
+  session: string;
   section: string;
   rollNumber: string;
   gender: string;
@@ -14,9 +15,10 @@ export interface IStudent extends Document {
 
 const studentSchema = new Schema<IStudent>(
   {
-    userId: { type: Schema.Types.ObjectId, ref: "User", required: true },
+    userId: { type: Schema.Types.ObjectId, ref: "User" },
     class: String,
     section: String,
+    session: String,
     rollNumber: String,
     gender: String,
     dob: Date,

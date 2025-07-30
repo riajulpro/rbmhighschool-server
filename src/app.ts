@@ -11,7 +11,11 @@ import { errorHandler } from "./middlewares/errorHandler";
 dotenv.config();
 
 const app = express();
-app.use(cors());
+app.use(
+  cors({
+    origin: ["http://localhost:3000", "https://rbmhighschool.vercel.app"],
+  })
+);
 app.use(express.json());
 
 connectDB();
@@ -19,6 +23,7 @@ connectDB();
 // Routes
 app.use("/", rootRouter);
 app.use("/api/auth", require("./routes/auth.route").default);
+app.use("/api/results", require("./routes/result.route").default);
 
 // 404 & Error Handlers
 app.use(notFound);
