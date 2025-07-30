@@ -24,6 +24,9 @@ connectDB();
 app.use("/", rootRouter);
 app.use("/api/auth", require("./routes/auth.route").default);
 app.use("/api/results", require("./routes/result.route").default);
+app.use("/api/students", require("./routes/student.route").default);
+app.use("/api/teachers", require("./routes/teacher.route").default);
+app.use("/api/institution", require("./routes/institution.route").default);
 
 // 404 & Error Handlers
 app.use(notFound);

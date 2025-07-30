@@ -39,7 +39,7 @@ export const createResult = async (req: Request, res: Response) => {
 export const getResults = async (_req: Request, res: Response) => {
   try {
     // const results = await Result.find().populate("student");
-    const results = await Result.find();
+    const results = await Result.find().populate("student");
 
     res.json(results);
   } catch (error) {
@@ -50,7 +50,10 @@ export const getResults = async (_req: Request, res: Response) => {
 export const getResultByStudent = async (req: Request, res: Response) => {
   try {
     const studentId = req.params.studentId;
-    const results = await Result.find({ student: studentId });
+    const results = await Result.find({ student: studentId }).populate(
+      "student"
+    );
+
     res.json(results);
   } catch (error) {
     res.status(500).json({ message: "Failed to fetch result", error });
