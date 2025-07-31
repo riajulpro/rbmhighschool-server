@@ -5,7 +5,6 @@ import {
   getStudentById,
   updateStudent,
   deleteStudent,
-  getStudentCountsGrouped,
 } from "../controllers/student.controller";
 
 const router = express.Router();
@@ -15,6 +14,5 @@ router.get("/", getStudents); // Get all with filters
 router.get("/:id", getStudentById); // Get one
 router.put("/:id", updateStudent); // Update
 router.delete("/:id", deleteStudent); // Delete
-router.get("/counts", getStudentCountsGrouped);
 
 export default router;

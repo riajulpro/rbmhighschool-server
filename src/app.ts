@@ -30,6 +30,7 @@ app.use("/api/gallery", require("./routes/gallery.route").default);
 app.use("/api/notices", require("./routes/notice.route").default);
 app.use("/api/posts", require("./routes/post.route").default);
 app.use("/api/routine", require("./routes/routine.route").default);
+app.use("/api/facilities", require("./routes/facility.route").default);
 
 // 404 & Error Handlers
 app.use(notFound);
