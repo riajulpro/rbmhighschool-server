@@ -27,6 +27,9 @@ app.use("/api/results", require("./routes/result.route").default);
 app.use("/api/students", require("./routes/student.route").default);
 app.use("/api/teachers", require("./routes/teacher.route").default);
 app.use("/api/institution", require("./routes/institution.route").default);
+app.use("/api/gallery", require("./routes/gallery.route").default);
+app.use("/api/notice", require("./routes/notice.route").default);
+app.use("/api/post", require("./routes/post.route").default);
 
 // 404 & Error Handlers
 app.use(notFound);

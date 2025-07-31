@@ -1,13 +1,24 @@
-import { model, Schema } from "mongoose";
+import { Schema, model, Document } from "mongoose";
 
-const noticeSchema = new Schema(
+export interface INotice extends Document {
+  title: string;
+  description: string;
+  date: Date;
+  audience?: string;
+}
+
+const noticeSchema = new Schema<INotice>(
   {
-    title: String,
-    content: String,
-    createdBy: { type: Schema.Types.ObjectId, ref: "User" },
-    forRoles: [String],
+    title: { type: String, required: true },
+    description: { type: String, required: true },
+    date: { type: Date, required: true },
+    audience: {
+      type: String,
+      enum: ["students", "teachers", "all"],
+      default: "all",
+    },
   },
   { timestamps: true }
 );
 
-export const Notice = model("Notice", noticeSchema);
+export const Notice = model<INotice>("Notice", noticeSchema);
