@@ -1,4 +1,3 @@
-// src/app.ts
 import express from "express";
 import cors from "cors";
 import { connectDB } from "./config/db";
@@ -28,8 +27,9 @@ app.use("/api/students", require("./routes/student.route").default);
 app.use("/api/teachers", require("./routes/teacher.route").default);
 app.use("/api/institution", require("./routes/institution.route").default);
 app.use("/api/gallery", require("./routes/gallery.route").default);
-app.use("/api/notice", require("./routes/notice.route").default);
-app.use("/api/post", require("./routes/post.route").default);
+app.use("/api/notices", require("./routes/notice.route").default);
+app.use("/api/posts", require("./routes/post.route").default);
+app.use("/api/routine", require("./routes/routine.route").default);
 
 // 404 & Error Handlers
 app.use(notFound);

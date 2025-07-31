@@ -2,6 +2,7 @@ import { Request, Response } from "express";
 import { Result } from "../models/result";
 import { getGradeAndPoint, getOverallGradeFromGPA } from "../utils/gradeUtils";
 import { Types } from "mongoose";
+import { Student } from "../models/student";
 
 export const createResult = async (req: Request, res: Response) => {
   try {
@@ -153,5 +154,38 @@ export const deleteResult = async (req: Request, res: Response) => {
     res.json({ message: "Result deleted" });
   } catch (error) {
     res.status(500).json({ message: "Failed to delete result", error });
+  }
+};
+
+export const getResultByStudentInfo = async (req: Request, res: Response) => {
+  try {
+    const { class: studentClass, session, rollNumber } = req.body;
+
+    // Step 1: Find student by class, session, and rollNumber
+    const student = await Student.findOne({
+      class: studentClass,
+      session,
+      rollNumber,
+    });
+
+    if (!student) {
+      return res.status(404).json({ message: "Student not found" });
+    }
+
+    // Step 2: Find results by student._id
+    const results = await Result.find({ student: student._id }).populate(
+      "student"
+    );
+
+    if (!results || results.length === 0) {
+      return res
+        .status(404)
+        .json({ message: "No result found for this student" });
+    }
+
+    return res.status(200).json({ results });
+  } catch (error) {
+    console.error("Fetch Error:", error);
+    return res.status(500).json({ message: "Failed to fetch result", error });
   }
 };
