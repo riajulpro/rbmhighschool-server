@@ -71,6 +71,66 @@ export const deleteStudent = async (req: Request, res: Response) => {
   }
 };
 
+export const getStudentCountsGrouped = async (req: Request, res: Response) => {
+  try {
+    const { session } = req.query;
+
+    const matchStage: any = {};
+    if (session) matchStage.session = session;
+
+    const students = await Student.aggregate([
+      { $match: matchStage },
+      {
+        $group: {
+          _id: {
+            session: "$session",
+            class: "$class",
+            gender: "$gender",
+          },
+          count: { $sum: 1 },
+        },
+      },
+    ]);
+
+    const resultMap: Record<
+      string,
+      Record<string, { male: number; female: number; total: number }>
+    > = {};
+
+    students.forEach((entry) => {
+      const session = entry._id.session;
+      const className = entry._id.class;
+      const gender = entry._id.gender;
+      const count = entry.count;
+
+      if (!resultMap[session]) {
+        resultMap[session] = {};
+      }
+
+      if (!resultMap[session][className]) {
+        resultMap[session][className] = { male: 0, female: 0, total: 0 };
+      }
+
+      if (gender === "male") resultMap[session][className].male += count;
+      else if (gender === "female")
+        resultMap[session][className].female += count;
+
+      resultMap[session][className].total += count;
+    });
+
+    return res.status(200).json({
+      message: session
+        ? `Counts for session ${session}`
+        : "Counts for all sessions",
+      data: resultMap,
+    });
+  } catch (error) {
+    return res
+      .status(500)
+      .json({ message: "Failed to get student counts", error });
+  }
+};
+
 // promotion system
 // export const promotePassedStudents = async (req: Request, res: Response) => {
 //   try {
