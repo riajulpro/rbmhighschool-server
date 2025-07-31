@@ -15,7 +15,7 @@ export const createTeacher = async (req: Request, res: Response) => {
 export const getAllTeachers = async (req: Request, res: Response) => {
   try {
     const teachers = await Teacher.find().populate("userId");
-    res.status(200).json(teachers);
+    res.status(200).json({ teachers });
   } catch (error) {
     res.status(500).json({ message: "Failed to fetch teachers", error });
   }

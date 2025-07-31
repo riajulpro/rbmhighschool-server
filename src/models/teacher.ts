@@ -2,11 +2,14 @@ import { Schema, model } from "mongoose";
 
 const teacherSchema = new Schema(
   {
-    userId: { type: Schema.Types.ObjectId, ref: "User", required: true },
+    userId: {
+      type: Schema.Types.ObjectId,
+      ref: "User",
+      required: true,
+      unique: true,
+    },
     designation: String,
-    name: String,
     phone: String,
-    email: String,
     institution: String,
     profileImg: String,
     specialization: [String],
