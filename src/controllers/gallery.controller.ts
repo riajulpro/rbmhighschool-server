@@ -55,3 +55,20 @@ export const deleteGalleryItem = async (req: Request, res: Response) => {
     res.status(500).json({ message: "Failed to delete gallery item", error });
   }
 };
+
+// get last 5 photos
+
+// Get last 5 photo URLs
+export const getLast5PhotoUrls = async (_: Request, res: Response) => {
+  try {
+    const photos = await Gallery.find({ type: "photo" })
+      .sort({ createdAt: -1 })
+      .limit(5)
+      .select("url");
+
+    const photoUrls = photos.map((photo) => photo.url);
+    res.json({ photoUrls });
+  } catch (error) {
+    res.status(500).json({ message: "Failed to fetch photo URLs", error });
+  }
+};
