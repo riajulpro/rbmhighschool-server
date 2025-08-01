@@ -1,6 +1,6 @@
 import { Schema, model } from "mongoose";
 
-const authoritySchema = new Schema(
+const staffSchema = new Schema(
   {
     name: String,
     responsibility: String,
@@ -9,4 +9,4 @@ const authoritySchema = new Schema(
   { timestamps: true }
 );
 
-export const Authority = model("Authority", authoritySchema);
+export const Staff = model("Staff", staffSchema);

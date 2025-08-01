@@ -2,16 +2,14 @@ import { Schema, model, Document } from "mongoose";
 
 export interface INotice extends Document {
   title: string;
-  description: string;
-  date: Date;
+  docPath: string;
   audience?: string;
 }
 
 const noticeSchema = new Schema<INotice>(
   {
     title: { type: String, required: true },
-    description: { type: String, required: true },
-    date: { type: Date, required: true },
+    docPath: { type: String, required: true },
     audience: {
       type: String,
       enum: ["students", "teachers", "all"],
