@@ -12,9 +12,18 @@ export const createNotice = async (req: Request, res: Response) => {
 };
 
 // Get All
-export const getAllNotices = async (_: Request, res: Response) => {
+export const getAllNotices = async (req: Request, res: Response) => {
   try {
-    const notices = await Notice.find().sort({ date: -1 });
+    const limit = req.query.limit
+      ? parseInt(req.query.limit as string, 10)
+      : undefined;
+
+    const query = Notice.find().sort({ createdAt: -1 });
+    if (limit) {
+      query.limit(limit);
+    }
+
+    const notices = await query;
     res.json({ notices });
   } catch (error) {
     res.status(500).json({ message: "Failed to fetch notices", error });
