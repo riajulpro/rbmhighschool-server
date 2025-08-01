@@ -5,6 +5,7 @@ import {
   getGalleryItemById,
   updateGalleryItem,
   deleteGalleryItem,
+  getLast5PhotoUrls,
 } from "../controllers/gallery.controller";
 
 const router = express.Router();
@@ -14,5 +15,6 @@ router.get("/", getAllGalleryItems);
 router.get("/:id", getGalleryItemById);
 router.put("/:id", updateGalleryItem);
 router.delete("/:id", deleteGalleryItem);
+router.get("/slide-photos", getLast5PhotoUrls);
 
 export default router;
