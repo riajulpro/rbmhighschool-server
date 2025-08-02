@@ -12,9 +12,9 @@ const router = express.Router();
 
 router.post("/", createGalleryItem);
 router.get("/", getAllGalleryItems);
+router.get("/slide-photos", getLast5PhotoUrls);
 router.get("/:id", getGalleryItemById);
 router.put("/:id", updateGalleryItem);
 router.delete("/:id", deleteGalleryItem);
-router.get("/slide-photos", getLast5PhotoUrls);
 
 export default router;
