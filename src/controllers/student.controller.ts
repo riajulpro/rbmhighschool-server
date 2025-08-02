@@ -69,3 +69,109 @@ export const deleteStudent = async (req: Request, res: Response) => {
     res.status(500).json({ message: "Failed to delete student", error });
   }
 };
+
+export const getStudentGenderStatsByClass = async (
+  _: Request,
+  res: Response
+) => {
+  try {
+    const classWiseStats = await Student.aggregate([
+      {
+        $group: {
+          _id: {
+            class: "$class",
+            gender: "$gender",
+          },
+          count: { $sum: 1 },
+        },
+      },
+      {
+        $group: {
+          _id: "$_id.class",
+          counts: {
+            $push: {
+              gender: "$_id.gender",
+              count: "$count",
+            },
+          },
+          total: { $sum: "$count" },
+        },
+      },
+      {
+        $project: {
+          _id: 0,
+          class: "$_id",
+          male: {
+            $let: {
+              vars: {
+                maleObj: {
+                  $arrayElemAt: [
+                    {
+                      $filter: {
+                        input: "$counts",
+                        as: "item",
+                        cond: { $eq: ["$$item.gender", "male"] },
+                      },
+                    },
+                    0,
+                  ],
+                },
+              },
+              in: { $ifNull: ["$$maleObj.count", 0] },
+            },
+          },
+          female: {
+            $let: {
+              vars: {
+                femaleObj: {
+                  $arrayElemAt: [
+                    {
+                      $filter: {
+                        input: "$counts",
+                        as: "item",
+                        cond: { $eq: ["$$item.gender", "female"] },
+                      },
+                    },
+                    0,
+                  ],
+                },
+              },
+              in: { $ifNull: ["$$femaleObj.count", 0] },
+            },
+          },
+          total: "$total",
+        },
+      },
+      {
+        $sort: { class: 1 },
+      },
+    ]);
+
+    // Calculate overall totals
+    const totalMale = classWiseStats.reduce(
+      (acc, curr) => acc + (curr.male || 0),
+      0
+    );
+    const totalFemale = classWiseStats.reduce(
+      (acc, curr) => acc + (curr.female || 0),
+      0
+    );
+    const totalStudents = classWiseStats.reduce(
+      (acc, curr) => acc + (curr.total || 0),
+      0
+    );
+
+    const summary = {
+      class: "All Classes",
+      male: totalMale,
+      female: totalFemale,
+      total: totalStudents,
+    };
+
+    const resultWithSummary = [...classWiseStats, summary];
+
+    res.status(200).json({ stats: resultWithSummary });
+  } catch (error) {
+    res.status(500).json({ message: "Failed to get student stats", error });
+  }
+};

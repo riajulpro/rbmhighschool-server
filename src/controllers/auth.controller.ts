@@ -112,3 +112,12 @@ export const updateUser = async (req: Request, res: Response) => {
     return res.status(500).json({ message: "Update failed", error: err });
   }
 };
+
+export const getAllUsers = async (_: Request, res: Response) => {
+  try {
+    const users = await User.find().select("-password"); // Exclude passwords for security
+    res.status(200).json({ message: "All users fetched", users });
+  } catch (err) {
+    res.status(500).json({ message: "Failed to fetch users", error: err });
+  }
+};
