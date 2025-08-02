@@ -1,8 +1,9 @@
-import { Schema, model, Document, Types } from "mongoose";
+import { Schema, model, Document } from "mongoose";
 
 export interface IStudent extends Document {
-  userId: Types.ObjectId;
   studentName: string;
+  fatherName: string;
+  motherName: string;
   class: string;
   session: string;
   section: string;
@@ -16,8 +17,9 @@ export interface IStudent extends Document {
 
 const studentSchema = new Schema<IStudent>(
   {
-    userId: { type: Schema.Types.ObjectId, ref: "User" },
     studentName: String,
+    fatherName: String,
+    motherName: String,
     class: String,
     section: String,
     session: String,

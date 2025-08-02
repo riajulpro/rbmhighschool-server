@@ -12,9 +12,16 @@ export const createGalleryItem = async (req: Request, res: Response) => {
 };
 
 // Read All
-export const getAllGalleryItems = async (_: Request, res: Response) => {
+export const getAllGalleryItems = async (req: Request, res: Response) => {
   try {
-    const items = await Gallery.find().sort({ createdAt: -1 });
+    const { type } = req.query;
+
+    const filter: any = {};
+    if (type === "photo" || type === "video") {
+      filter.type = type;
+    }
+
+    const items = await Gallery.find(filter).sort({ createdAt: -1 });
     res.json({ gallery: items });
   } catch (error) {
     res.status(500).json({ message: "Failed to fetch gallery items", error });
