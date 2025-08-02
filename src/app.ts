@@ -34,6 +34,10 @@ app.use("/api/facilities", require("./routes/facility.route").default);
 app.use("/api/authorities", require("./routes/authority.route").default);
 app.use("/api/staffs", require("./routes/staff.route").default);
 app.use("/api/admissions", require("./routes/admission.route").default);
+app.use(
+  "/api/honored-students",
+  require("./routes/honoredStudent.route").default
+);
 
 // 404 & Error Handlers
 app.use(notFound);
