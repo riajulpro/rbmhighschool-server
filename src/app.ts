@@ -32,6 +32,8 @@ app.use("/api/notices", require("./routes/notice.route").default);
 app.use("/api/posts", require("./routes/post.route").default);
 app.use("/api/routine", require("./routes/routine.route").default);
 app.use("/api/facilities", require("./routes/facility.route").default);
+app.use("/api/vacancies", require("./routes/vacancies.route").default);
+app.use("/api/vacations", require("./routes/vacation.route").default);
 app.use("/api/authorities", require("./routes/authority.route").default);
 app.use("/api/staffs", require("./routes/staff.route").default);
 app.use("/api/admissions", require("./routes/admission.route").default);
