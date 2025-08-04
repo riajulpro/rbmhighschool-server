@@ -175,3 +175,28 @@ export const getStudentGenderStatsByClass = async (
     res.status(500).json({ message: "Failed to get student stats", error });
   }
 };
+
+// ✅ Get student IDs and names by class and session
+export const getStudentNamesByClassAndSession = async (
+  req: Request,
+  res: Response
+) => {
+  try {
+    const { session, class: className } = req.query;
+
+    if (!session || !className) {
+      return res
+        .status(400)
+        .json({ message: "Session and class are required" });
+    }
+
+    const students = await Student.find(
+      { session, class: className },
+      { _id: 1, name: 1 }
+    );
+
+    res.status(200).json({ students });
+  } catch (error) {
+    res.status(500).json({ message: "Failed to get student names", error });
+  }
+};
