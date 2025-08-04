@@ -13,6 +13,7 @@ const app = express();
 app.use(
   cors({
     origin: ["http://localhost:3000", "https://rbmhighschool.vercel.app"],
+    credentials: true,
   })
 );
 app.use(express.json());
