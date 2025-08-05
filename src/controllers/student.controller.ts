@@ -21,7 +21,7 @@ export const getStudents = async (req: Request, res: Response) => {
     if (className) filter.class = className;
     if (gender) filter.gender = gender;
 
-    const students = await Student.find(filter).populate("userId");
+    const students = await Student.find(filter);
     res.json({ students });
   } catch (error) {
     res.status(500).json({ message: "Failed to get students", error });
