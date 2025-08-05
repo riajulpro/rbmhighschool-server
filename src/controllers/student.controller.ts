@@ -192,7 +192,7 @@ export const getStudentNamesByClassAndSession = async (
 
     const students = await Student.find(
       { session, class: className },
-      { _id: 1, name: 1 }
+      { _id: 1, studentName: 1 }
     );
 
     res.status(200).json({ students });
