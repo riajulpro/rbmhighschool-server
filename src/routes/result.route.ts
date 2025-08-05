@@ -11,10 +11,10 @@ import {
 const router = express.Router();
 
 router.post("/", createResult);
+router.post("/by-info", getResultByStudentInfo);
 router.get("/", getResults);
 router.get("/student/:studentId", getResultByStudent);
 router.put("/:id", updateResult);
 router.delete("/:id", deleteResult);
-router.post("/by-info", getResultByStudentInfo);
 
 export default router;
