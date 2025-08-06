@@ -121,3 +121,15 @@ export const getAllUsers = async (_: Request, res: Response) => {
     res.status(500).json({ message: "Failed to fetch users", error: err });
   }
 };
+
+export const getAllTeachers = async (_: Request, res: Response) => {
+  try {
+    const users = await User.find({
+      role: "teacher",
+    }).select("_id name");
+
+    res.status(200).json({ message: "All teachers fetched", teachers: users });
+  } catch (err) {
+    res.status(500).json({ message: "Failed to fetch users", error: err });
+  }
+};

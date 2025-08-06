@@ -7,12 +7,14 @@ import {
   changePassword,
   updateUser,
   getAllUsers,
+  getAllTeachers,
 } from "../controllers/auth.controller";
 import { authenticate, authorize } from "../middlewares/auth";
 
 const router = express.Router();
 
 router.post("/register", register);
+router.get("/get-all-teachers", getAllTeachers);
 router.get(
   "/get-all-users",
   authenticate,
