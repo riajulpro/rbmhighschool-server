@@ -12,7 +12,10 @@ dotenv.config();
 const app = express();
 app.use(
   cors({
-    origin: ["http://localhost:3000", "https://rbmhighschool.vercel.app"],
+    origin: [
+      "https://rbmhighschool.vercel.app",
+      "https://rbmhighschool.edu.bd",
+    ],
     credentials: true,
   })
 );
