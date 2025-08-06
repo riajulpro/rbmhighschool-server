@@ -159,7 +159,7 @@ export const deleteResult = async (req: Request, res: Response) => {
 
 export const getResultByStudentInfo = async (req: Request, res: Response) => {
   try {
-    const { class: studentClass, session, rollNumber } = req.body;
+    const { class: studentClass, session, rollNumber, semester } = req.body;
 
     // Step 1: Find student by class, session, and rollNumber
     const student = await Student.findOne({
@@ -173,7 +173,7 @@ export const getResultByStudentInfo = async (req: Request, res: Response) => {
     }
 
     // Step 2: Find results by student._id
-    const results = await Result.find({ student: student._id }).populate(
+    const results = await Result.find({ student: student._id, semester }).populate(
       "student"
     );
 
