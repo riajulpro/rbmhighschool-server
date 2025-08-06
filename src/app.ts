@@ -1,8 +1,8 @@
 import express from "express";
 import cors from "cors";
+import { connectDB } from "./config/db";
 import dotenv from "dotenv";
 
-import { connectDB } from "./config/db";
 import rootRouter from "./routes/root.route";
 import { notFound } from "./middlewares/notFound";
 import { errorHandler } from "./middlewares/errorHandler";
@@ -11,41 +11,25 @@ dotenv.config();
 
 const app = express();
 
-// ✅ Allowed Origins List
-const allowedOrigins = [
-  "http://localhost:3000",
-  "https://rbmhighschool.vercel.app",
-  "https://rbmhighschool.edu.bd",
-];
-
-// ✅ CORS Middleware (secure + credentials)
 app.use(
   cors({
-    origin: (origin, callback) => {
-      if (!origin || allowedOrigins.includes(origin)) {
-        callback(null, true);
-      } else {
-        callback(new Error("Not allowed by CORS"));
-      }
-    },
+    origin: [
+      "https://rbmhighschool.vercel.app",
+      "https://rbmhighschool.edu.bd",
+      "https://www.rbmhighschool.edu.bd", // Add if needed
+      "http://localhost:3000", // Add for local development
+    ],
     credentials: true,
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization"],
   })
 );
 
-// ✅ Handle Preflight OPTIONS Requests
-app.options("*", cors()); // still needed for automatic headers
-app.options("*", (req, res) => {
-  res.sendStatus(204); // no content
-});
-
-// ✅ Body Parsers
 app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
 
-// ✅ Connect DB
 connectDB();
 
-// ✅ Routes
+// Routes
 app.use("/", rootRouter);
 app.use("/api/auth", require("./routes/auth.route").default);
 app.use("/api/results", require("./routes/result.route").default);
@@ -67,7 +51,7 @@ app.use(
   require("./routes/honoredStudent.route").default
 );
 
-// ✅ 404 & Global Error Handlers
+// 404 & Error Handlers
 app.use(notFound);
 app.use(errorHandler);
 
