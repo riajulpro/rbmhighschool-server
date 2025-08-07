@@ -28,7 +28,7 @@ router.post("/forgot-password", forgotPassword);
 router.post("/verify-otp", verifyOtp);
 router.post("/change-password", authenticate, changePassword);
 router.put("/update/:id", authenticate, updateUser);
-router.put("/update/by-email", authenticate, updateUserWithEmail);
+router.post("/update/by-email", authenticate, updateUserWithEmail);
 router.delete(
   "/remove/:id",
   authenticate,
