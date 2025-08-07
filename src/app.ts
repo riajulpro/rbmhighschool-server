@@ -45,6 +45,7 @@ app.use("/api/vacancies", require("./routes/vacancy.route").default);
 app.use("/api/vacations", require("./routes/vacation.route").default);
 app.use("/api/authorities", require("./routes/authority.route").default);
 app.use("/api/staffs", require("./routes/staff.route").default);
+app.use("/api/statistics", require("./routes/statistic.route").default);
 app.use("/api/admissions", require("./routes/admission.route").default);
 app.use(
   "/api/honored-students",
