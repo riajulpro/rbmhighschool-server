@@ -7,14 +7,30 @@ import {
   deleteResult,
   getResultByStudentInfo,
 } from "../controllers/result.controller";
+import { authenticate, authorize } from "../middlewares/auth";
 
 const router = express.Router();
 
-router.post("/", createResult);
+router.post(
+  "/",
+  authenticate,
+  authorize("admin", "principal", "teacher"),
+  createResult
+);
 router.post("/by-info", getResultByStudentInfo);
 router.get("/", getResults);
 router.get("/student/:studentId", getResultByStudent);
-router.put("/:id", updateResult);
-router.delete("/:id", deleteResult);
+router.put(
+  "/:id",
+  authenticate,
+  authorize("admin", "principal", "teacher"),
+  updateResult
+);
+router.delete(
+  "/:id",
+  authenticate,
+  authorize("admin", "principal", "teacher"),
+  deleteResult
+);
 
 export default router;

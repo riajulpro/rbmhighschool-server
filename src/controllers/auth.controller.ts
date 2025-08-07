@@ -113,6 +113,17 @@ export const updateUser = async (req: Request, res: Response) => {
   }
 };
 
+// Delete
+export const deleteUser = async (req: Request, res: Response) => {
+  try {
+    const deleted = await User.findByIdAndDelete(req.params.id);
+    if (!deleted) return res.status(404).json({ message: "User not found" });
+    res.json({ message: "User deleted!" });
+  } catch (error) {
+    res.status(500).json({ message: "Failed to delete user", error });
+  }
+};
+
 export const getAllUsers = async (_: Request, res: Response) => {
   try {
     const users = await User.find().select("-password"); // Exclude passwords for security

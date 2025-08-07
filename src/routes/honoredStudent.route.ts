@@ -6,13 +6,29 @@ import {
   updateHonoredStudent,
   deleteHonoredStudent,
 } from "../controllers/honoredStudent.controller";
+import { authenticate, authorize } from "../middlewares/auth";
 
 const router = express.Router();
 
-router.post("/", createHonoredStudent);
+router.post(
+  "/",
+  authenticate,
+  authorize("admin", "principal"),
+  createHonoredStudent
+);
 router.get("/", getAllHonoredStudents);
 router.get("/:id", getHonoredStudentById);
-router.put("/:id", updateHonoredStudent);
-router.delete("/:id", deleteHonoredStudent);
+router.put(
+  "/:id",
+  authenticate,
+  authorize("admin", "principal"),
+  updateHonoredStudent
+);
+router.delete(
+  "/:id",
+  authenticate,
+  authorize("admin", "principal"),
+  deleteHonoredStudent
+);
 
 export default router;

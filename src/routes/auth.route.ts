@@ -8,6 +8,7 @@ import {
   updateUser,
   getAllUsers,
   getAllTeachers,
+  deleteUser,
 } from "../controllers/auth.controller";
 import { authenticate, authorize } from "../middlewares/auth";
 
@@ -26,5 +27,11 @@ router.post("/forgot-password", forgotPassword);
 router.post("/verify-otp", verifyOtp);
 router.post("/change-password", authenticate, changePassword);
 router.put("/update/:id", authenticate, updateUser);
+router.delete(
+  "/remove/:id",
+  authenticate,
+  authorize("admin", "principal"),
+  deleteUser
+);
 
 export default router;

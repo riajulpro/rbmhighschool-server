@@ -6,13 +6,19 @@ import {
   updateNotice,
   deleteNotice,
 } from "../controllers/notice.controller";
+import { authenticate, authorize } from "../middlewares/auth";
 
 const router = express.Router();
 
-router.post("/", createNotice);
+router.post("/", authenticate, authorize("admin", "principal"), createNotice);
 router.get("/", getAllNotices);
 router.get("/:id", getNoticeById);
-router.put("/:id", updateNotice);
-router.delete("/:id", deleteNotice);
+router.put("/:id", authenticate, authorize("admin", "principal"), updateNotice);
+router.delete(
+  "/:id",
+  authenticate,
+  authorize("admin", "principal"),
+  deleteNotice
+);
 
 export default router;
