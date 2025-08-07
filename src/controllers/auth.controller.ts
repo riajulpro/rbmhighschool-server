@@ -123,10 +123,9 @@ export const updateUser = async (req: Request, res: Response) => {
 
 export const updateUserWithEmail = async (req: Request, res: Response) => {
   try {
-    const email = req.params.email;
-    const updates = req.body;
+    const { email, data } = req.body;
 
-    const user = await User.findOneAndUpdate({ email }, updates, { new: true });
+    const user = await User.findOneAndUpdate({ email }, data, { new: true });
 
     if (!user) {
       return res.status(404).json({ message: "User not found" });
