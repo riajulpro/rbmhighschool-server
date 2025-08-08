@@ -72,32 +72,52 @@ export const forgotPassword = async (req: Request, res: Response) => {
 export const verifyOtp = async (req: Request, res: Response) => {
   const { email, otp, password } = req.body;
 
-  if (otpStore[email] === otp) {
-    delete otpStore[email]; // remove used OTP
+  // Validate request body
+  if (!email || !otp || !password) {
+    return res
+      .status(400)
+      .json({ message: "Email, OTP, and password are required" });
+  }
 
-    try {
-      // Hash the new password
-      const hashedPassword = await bcrypt.hash(password, 10);
+  if (typeof password !== "string" || password.length < 6) {
+    return res.status(400).json({
+      message: "Password must be a string with at least 6 characters",
+    });
+  }
 
-      // Update user password in database
-      const user = await User.findOne({ where: { email } }); // adjust if using Mongoose or other ORM
-
-      if (!user) {
-        return res.status(404).json({ message: "User not found" });
-      }
-
-      user.password = hashedPassword;
-      await user.save();
-
-      return res.json({
-        message: "Password reset successfully",
-        success: true,
-      });
-    } catch (error) {
-      return res.status(500).json({ message: "Server error", error });
-    }
-  } else {
+  // Check OTP
+  if (!otpStore[email]) {
+    return res.status(400).json({ message: "No OTP found for this email" });
+  }
+  if (otpStore[email] !== otp) {
     return res.status(400).json({ message: "Invalid OTP" });
+  }
+
+  try {
+    // Hash the new password
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    // Update user password in database
+    const user = await User.findOne({ where: { email } });
+    if (!user) {
+      console.log(`User not found for email: ${email}`);
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    user.password = hashedPassword;
+    await user.save();
+
+    delete otpStore[email]; // Remove used OTP
+
+    return res.json({
+      message: "Password reset successfully",
+      success: true,
+    });
+  } catch (error: any) {
+    console.error("Error in verifyOtp:", error);
+    return res
+      .status(500)
+      .json({ message: "Server error", error: error.message });
   }
 };
 
