@@ -98,7 +98,7 @@ export const verifyOtp = async (req: Request, res: Response) => {
     const hashedPassword = await bcrypt.hash(password, 10);
 
     // Update user password in database
-    const user = await User.findOne({ where: { email } });
+    const user = await User.findOne({ email });
     if (!user) {
       console.log(`User not found for email: ${email}`);
       return res.status(404).json({ message: "User not found" });
