@@ -15,6 +15,11 @@ router.post("/", authenticate, authorize("admin", "principal"), createTeacher);
 router.get("/", getAllTeachers);
 router.get("/:id", getTeacherById);
 router.put("/:id", authenticate, updateTeacher);
-router.delete("/:id", authorize("admin", "principal"), deleteTeacher);
+router.delete(
+  "/:id",
+  authenticate,
+  authorize("admin", "principal"),
+  deleteTeacher
+);
 
 export default router;
