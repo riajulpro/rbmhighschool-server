@@ -47,6 +47,8 @@ app.use("/api/authorities", require("./routes/authority.route").default);
 app.use("/api/staffs", require("./routes/staff.route").default);
 app.use("/api/statistics", require("./routes/statistic.route").default);
 app.use("/api/admissions", require("./routes/admission.route").default);
+app.use("/api/exam-results", require("./routes/examResult.route").default);
+
 app.use(
   "/api/honored-students",
   require("./routes/honoredStudent.route").default

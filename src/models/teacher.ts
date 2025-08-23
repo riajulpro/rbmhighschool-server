@@ -1,5 +1,12 @@
 import { Schema, model } from "mongoose";
 
+const skillSchema = new Schema({
+  title: String,
+  completionDate: Date,
+  description: String,
+  certificateUrl: String,
+});
+
 const teacherSchema = new Schema(
   {
     userId: {
@@ -13,6 +20,7 @@ const teacherSchema = new Schema(
     institution: String,
     profileImg: String,
     specialization: [String],
+    skills: [skillSchema],
   },
   { timestamps: true }
 );
