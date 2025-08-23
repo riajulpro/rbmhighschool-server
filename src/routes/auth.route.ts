@@ -10,6 +10,7 @@ import {
   getAllTeachers,
   deleteUser,
   updateUserWithEmail,
+  refresh,
 } from "../controllers/auth.controller";
 import { authenticate, authorize } from "../middlewares/auth";
 
@@ -25,6 +26,7 @@ router.get(
 );
 router.post("/login", login);
 router.post("/forgot-password", forgotPassword);
+router.post("/refresh", refresh);
 router.post("/verify-otp", verifyOtp);
 router.post("/change-password", authenticate, changePassword);
 router.put("/update/:id", authenticate, updateUser);

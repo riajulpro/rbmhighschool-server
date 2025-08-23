@@ -218,3 +218,30 @@ export const getAllTeachers = async (_: Request, res: Response) => {
     res.status(500).json({ message: "Failed to fetch users", error: err });
   }
 };
+
+// POST /api/auth/refresh
+export const refresh = async (req: Request, res: Response) => {
+  try {
+    const { refreshToken } = req.body;
+    if (!refreshToken)
+      return res.status(401).json({ message: "No refresh token" });
+
+    // Verify refresh token (you should store it in DB or Redis to validate)
+    const decoded = jwt.verify(refreshToken, JWT_SECRET) as any;
+
+    // Issue a new access token
+    const newAccessToken = jwt.sign(
+      { id: decoded.id, role: decoded.role },
+      JWT_SECRET,
+      {
+        expiresIn: "7d",
+      }
+    );
+
+    return res.json({ token: newAccessToken });
+  } catch (err) {
+    return res
+      .status(401)
+      .json({ message: "Invalid refresh token", error: err });
+  }
+};
