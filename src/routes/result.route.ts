@@ -6,6 +6,7 @@ import {
   updateResult,
   deleteResult,
   getResultByStudentInfo,
+  getResultsByClassSessionSemester,
 } from "../controllers/result.controller";
 import { authenticate, authorize } from "../middlewares/auth";
 
@@ -18,6 +19,7 @@ router.post(
   createResult
 );
 router.post("/by-info", getResultByStudentInfo);
+router.post("/marksheet", getResultsByClassSessionSemester);
 router.get("/", getResults);
 router.get("/student/:studentId", getResultByStudent);
 router.put(
