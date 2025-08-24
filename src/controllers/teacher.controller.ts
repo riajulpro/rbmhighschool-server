@@ -1,5 +1,6 @@
 import { Request, Response } from "express";
 import { Teacher } from "../models/teacher"; // adjust path as needed
+import { User } from "../models/user";
 
 // Create a new teacher
 export const createTeacher = async (req: Request, res: Response) => {
@@ -28,6 +29,28 @@ export const getTeacherById = async (req: Request, res: Response) => {
     if (!teacher) {
       return res.status(404).json({ message: "Teacher not found" });
     }
+    res.status(200).json(teacher);
+  } catch (error) {
+    res.status(500).json({ message: "Failed to fetch teacher", error });
+  }
+};
+
+// Get a teacher by ID
+export const getTeacherByUserEmail = async (req: Request, res: Response) => {
+  try {
+    const { email } = req.params;
+    const existingUser = await User.findOne({ email });
+
+    if (!existingUser) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    const teacher = await Teacher.find({ userId: existingUser._id });
+
+    if (!teacher) {
+      return res.status(404).json({ message: "Teacher not found" });
+    }
+
     res.status(200).json(teacher);
   } catch (error) {
     res.status(500).json({ message: "Failed to fetch teacher", error });

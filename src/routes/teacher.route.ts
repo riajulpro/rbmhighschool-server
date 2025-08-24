@@ -5,6 +5,7 @@ import {
   getTeacherById,
   updateTeacher,
   deleteTeacher,
+  getTeacherByUserEmail,
 } from "../controllers/teacher.controller";
 import { authenticate, authorize } from "../middlewares/auth";
 
@@ -17,14 +18,18 @@ router.post(
   authorize("admin", "principal", "teacher"),
   createTeacher
 );
+
 router.get("/", getAllTeachers);
 router.get("/:id", getTeacherById);
+router.get("/my-profile/:email", getTeacherByUserEmail);
+
 router.put(
   "/:id",
   authenticate,
   authorize("admin", "principal", "teacher"),
   updateTeacher
 );
+
 router.delete(
   "/:id",
   authenticate,

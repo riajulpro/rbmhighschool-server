@@ -15,46 +15,24 @@ function getOverallGradeFromGPA(gpa: number): string {
   return "F";
 }
 
-// // CREATE RESULT
-// export const createResult = async (req: Request, res: Response) => {
-//   try {
-//     const { student, semester, year, subjects } = req.body as {
-//       student: string;
-//       semester: "FirstSemester" | "MidTerm" | "Annual";
-//       year: number | string;
-//       subjects: AnySubject[];
-//     };
+// Compute final GPA from all subjects
+function computeFinalGPA(subjects: { point: number }[]) {
+  if (!subjects.length) return { gpa: 0, anyFail: true };
 
-//     let totalPoints = 0;
-//     let failed = false;
+  let gpSum = 0;
+  let anyFail = false;
 
-//     const updatedSubjects = subjects.map((sub) => {
-//       const { doc, gp } = evaluateOneSubject(sub);
-//       if (gp === 0) failed = true;
-//       totalPoints += gp;
-//       return doc;
-//     });
+  subjects.forEach((s) => {
+    if (s.point === 0) anyFail = true;
+    gpSum += s.point;
+  });
 
-//     const gpa = failed
-//       ? 0.0
-//       : parseFloat((totalPoints / updatedSubjects.length).toFixed(2));
-//     const overallGrade = failed ? "F" : getOverallGradeFromGPA(gpa);
-
-//     const result = await Result.create({
-//       student,
-//       semester,
-//       year,
-//       subjects: updatedSubjects,
-//       gpa,
-//       overallGrade,
-//     });
-
-//     return res.status(201).json({ message: "Result created", result });
-//   } catch (error) {
-//     console.error("Create Result Error:", error);
-//     res.status(500).json({ message: "Failed to create result", error });
-//   }
-// };
+  const avg = gpSum / subjects.length;
+  const gpa = anyFail
+    ? 0.0
+    : Math.max(0, Math.min(5, parseFloat(avg.toFixed(2))));
+  return { gpa, anyFail };
+}
 
 // CREATE RESULT
 export const createResult = async (req: Request, res: Response) => {
@@ -66,9 +44,7 @@ export const createResult = async (req: Request, res: Response) => {
       subjects: AnySubject[];
     };
 
-    let totalPoints = 0;
     let failed = false;
-
     const updatedSubjects: any[] = [];
 
     // Group subjects by base name
@@ -85,38 +61,94 @@ export const createResult = async (req: Request, res: Response) => {
       const papers = subjectGroups[base];
 
       if (papers.length === 2) {
-        // Two-part subject → apply score sharing
-        const written1 = papers[0]?.marks?.written?.score || 0;
-        const mcq1 = papers[0]?.marks?.mcq?.score || 0;
-        const written2 = papers[1]?.marks?.written?.score;
-        const mcq2 = papers[1]?.marks?.mcq?.score;
+        // Extract marks
+        let written1 = papers[0]?.marks?.written?.score || 0;
+        let mcq1 = papers[0]?.marks?.mcq?.score || 0;
+        let written2 = papers[1]?.marks?.written?.score || 0;
+        let mcq2 = papers[1]?.marks?.mcq?.score || 0;
 
         const W_PASS = Math.ceil(
           (papers[0]?.marks?.written?.outOf || 0) * 0.33
         );
         const M_PASS = Math.ceil((papers[0]?.marks?.mcq?.outOf || 0) * 0.33);
 
-        const { total, grade, gp } = evaluateSubject({
-          written1,
-          mcq1,
-          written2,
-          mcq2,
-          W_PASS,
-          M_PASS,
-        });
+        // Pass check first
+        const failFirst = written1 < W_PASS || mcq1 < M_PASS;
+        const failSecond = written2 < W_PASS || mcq2 < M_PASS;
 
-        if (gp === 0) failed = true;
-        totalPoints += gp;
+        if (failFirst || failSecond) {
+          updatedSubjects.push(
+            ...papers.map((paper) => ({
+              subject: paper.subject,
+              marks: paper.marks,
+              grade: "F",
+              point: 0,
+              comments: paper.comments || "",
+            }))
+          );
+          failed = true;
+        } else {
+          // Both passed → apply mark sharing
+          let newWritten1 = written1;
+          let newWritten2 = written2;
 
-        const doc = papers.map((paper) => ({
-          subject: paper.subject,
-          marks: paper.marks,
-          grade,
-          point: gp,
-          comments: paper.comments || "",
-        }));
+          // Only share if both papers passed and any paper has > 80
+          if (
+            written1 >= W_PASS &&
+            mcq1 >= M_PASS &&
+            written2 >= W_PASS &&
+            mcq2 >= M_PASS
+          ) {
+            const total1 = written1 + mcq1;
+            const total2 = written2 + mcq2;
 
-        updatedSubjects.push(...doc);
+            if (total1 > 80 && total2 < 80) {
+              const excess = total1 - 80;
+              const needed = 80 - total2;
+              const transfer = Math.min(excess, needed);
+              newWritten1 -= transfer;
+              newWritten2 += transfer;
+            } else if (total2 > 80 && total1 < 80) {
+              const excess = total2 - 80;
+              const needed = 80 - total1;
+              const transfer = Math.min(excess, needed);
+              newWritten2 -= transfer;
+              newWritten1 += transfer;
+            }
+          }
+
+          // Evaluate using shared marks
+          const result1 = evaluateSubject({
+            written1: newWritten1,
+            mcq1,
+            W_PASS,
+            M_PASS,
+          });
+
+          const result2 = evaluateSubject({
+            written1: newWritten2,
+            mcq1: mcq2,
+            W_PASS,
+            M_PASS,
+          });
+
+          if (result1.gp === 0 || result2.gp === 0) failed = true;
+
+          updatedSubjects.push({
+            subject: papers[0].subject,
+            marks: papers[0].marks,
+            grade: result1.grade,
+            point: result1.gp,
+            comments: papers[0].comments || "",
+          });
+          updatedSubjects.push({
+            subject: papers[1].subject,
+            marks: papers[1].marks,
+            grade: result2.grade,
+            point: result2.gp,
+            comments: papers[1].comments || "",
+          });
+        }
       } else {
         // Single-paper subject → normal evaluation
         const paper = papers[0];
@@ -126,15 +158,14 @@ export const createResult = async (req: Request, res: Response) => {
         const W_PASS = Math.ceil((paper?.marks?.written?.outOf || 0) * 0.33);
         const M_PASS = Math.ceil((paper?.marks?.mcq?.outOf || 0) * 0.33);
 
-        const { grade, gp, total } = evaluateSubject({
+        const { grade, gp } = evaluateSubject({
           written1: written,
           mcq1: mcq,
           W_PASS,
           M_PASS,
-        } as any);
+        });
 
         if (gp === 0) failed = true;
-        totalPoints += gp;
 
         updatedSubjects.push({
           subject: paper.subject,
@@ -146,12 +177,11 @@ export const createResult = async (req: Request, res: Response) => {
       }
     }
 
-    const gpa = failed
-      ? 0.0
-      : parseFloat(
-          (totalPoints / Object.keys(subjectGroups).length).toFixed(2)
-        );
-    const overallGrade = failed ? "F" : getOverallGradeFromGPA(gpa);
+    // ✅ GPA calculation only from grouped subjects
+    const { gpa: computedGPA, anyFail } = computeFinalGPA(updatedSubjects);
+    const finalFailed = failed || anyFail;
+    const gpa = finalFailed ? 0.0 : computedGPA;
+    const overallGrade = finalFailed ? "F" : getOverallGradeFromGPA(gpa);
 
     const result = await Result.create({
       student,
@@ -195,85 +225,179 @@ export const getResultByStudent = async (req: Request, res: Response) => {
 // UPDATE RESULT
 export const updateResult = async (req: Request, res: Response) => {
   try {
-    const resultId = req.params.id;
-    const {
-      student,
-      semester,
-      year,
-      subjects: incomingSubjects = [],
-    } = req.body as {
+    const { id: resultId } = req.params;
+
+    const { student, semester, year, subjects } = req.body as {
       student?: string;
       semester?: "FirstSemester" | "MidTerm" | "Annual";
       year?: number | string;
       subjects?: AnySubject[];
     };
 
-    const existingResult = await Result.findById(resultId);
-    if (!existingResult) {
+    // Fetch existing result
+    const existing = await Result.findById(resultId);
+    if (!existing) {
       return res.status(404).json({ message: "Result not found" });
     }
 
-    const incomingMap = new Map(
-      (incomingSubjects as AnySubject[]).map((s) => [
-        s.subject.toLowerCase(),
-        s,
-      ])
-    );
-
-    let totalPoints = 0;
     let failed = false;
+    const updatedSubjects: any[] = [];
 
-    // Update existing subjects with incoming (if present)
-    const updatedSubjects = existingResult.subjects.map(
-      (existingSub: AnySubject) => {
-        const key = existingSub.subject.toLowerCase();
-        const source = incomingMap.get(key) ?? existingSub; // prefer incoming if provided
-        // Ensure we carry over subject name if incoming missed it
-        source.subject = existingSub.subject;
+    // Group subjects by base name
+    const subjectGroups: Record<string, AnySubject[]> = {};
+    (subjects || existing.subjects).forEach((sub) => {
+      const baseName = sub.subject
+        .replace(/First Paper|Second Paper/gi, "")
+        .trim();
+      if (!subjectGroups[baseName]) subjectGroups[baseName] = [];
+      subjectGroups[baseName].push(sub);
+    });
 
-        const { doc, gp } = evaluateOneSubject(source);
+    for (const base in subjectGroups) {
+      const papers = subjectGroups[base];
+
+      if (papers.length === 2) {
+        // Extract marks
+        let written1 = papers[0]?.marks?.written?.score || 0;
+        let mcq1 = papers[0]?.marks?.mcq?.score || 0;
+        let written2 = papers[1]?.marks?.written?.score || 0;
+        let mcq2 = papers[1]?.marks?.mcq?.score || 0;
+
+        const W_PASS = Math.ceil(
+          (papers[0]?.marks?.written?.outOf || 0) * 0.33
+        );
+        const M_PASS = Math.ceil((papers[0]?.marks?.mcq?.outOf || 0) * 0.33);
+
+        // Pass check first
+        const failFirst = written1 < W_PASS || mcq1 < M_PASS;
+        const failSecond = written2 < W_PASS || mcq2 < M_PASS;
+
+        if (failFirst || failSecond) {
+          updatedSubjects.push(
+            ...papers.map((paper) => ({
+              subject: paper.subject,
+              marks: paper.marks,
+              grade: "F",
+              point: 0,
+              comments: paper.comments || "",
+            }))
+          );
+          failed = true;
+        } else {
+          // Both passed → apply mark sharing
+          let newWritten1 = written1;
+          let newWritten2 = written2;
+
+          if (
+            written1 >= W_PASS &&
+            mcq1 >= M_PASS &&
+            written2 >= W_PASS &&
+            mcq2 >= M_PASS
+          ) {
+            const total1 = written1 + mcq1;
+            const total2 = written2 + mcq2;
+
+            if (total1 > 80 && total2 < 80) {
+              const excess = total1 - 80;
+              const needed = 80 - total2;
+              const transfer = Math.min(excess, needed);
+              newWritten1 -= transfer;
+              newWritten2 += transfer;
+            } else if (total2 > 80 && total1 < 80) {
+              const excess = total2 - 80;
+              const needed = 80 - total1;
+              const transfer = Math.min(excess, needed);
+              newWritten2 -= transfer;
+              newWritten1 += transfer;
+            }
+          }
+
+          // Evaluate using shared marks
+          const result1 = evaluateSubject({
+            written1: newWritten1,
+            mcq1,
+            W_PASS,
+            M_PASS,
+          });
+
+          const result2 = evaluateSubject({
+            written1: newWritten2,
+            mcq1: mcq2,
+            W_PASS,
+            M_PASS,
+          });
+
+          if (result1.gp === 0 || result2.gp === 0) failed = true;
+
+          updatedSubjects.push({
+            subject: papers[0].subject,
+            marks: papers[0].marks,
+            grade: result1.grade,
+            point: result1.gp,
+            comments: papers[0].comments || "",
+          });
+          updatedSubjects.push({
+            subject: papers[1].subject,
+            marks: papers[1].marks,
+            grade: result2.grade,
+            point: result2.gp,
+            comments: papers[1].comments || "",
+          });
+        }
+      } else {
+        // Single-paper subject → normal evaluation
+        const paper = papers[0];
+        const written = paper?.marks?.written?.score || 0;
+        const mcq = paper?.marks?.mcq?.score || 0;
+
+        const W_PASS = Math.ceil((paper?.marks?.written?.outOf || 0) * 0.33);
+        const M_PASS = Math.ceil((paper?.marks?.mcq?.outOf || 0) * 0.33);
+
+        const { grade, gp } = evaluateSubject({
+          written1: written,
+          mcq1: mcq,
+          W_PASS,
+          M_PASS,
+        });
+
         if (gp === 0) failed = true;
-        totalPoints += gp;
-        return doc;
-      }
-    );
 
-    // Add any new subjects not previously present
-    for (const incomingSub of incomingSubjects as AnySubject[]) {
-      const exists = updatedSubjects.some(
-        (s: AnySubject) =>
-          s.subject.toLowerCase() === incomingSub.subject.toLowerCase()
-      );
-      if (!exists) {
-        const { doc, gp } = evaluateOneSubject(incomingSub);
-        if (gp === 0) failed = true;
-        totalPoints += gp;
-        updatedSubjects.push(doc);
+        updatedSubjects.push({
+          subject: paper.subject,
+          marks: paper.marks,
+          grade,
+          point: gp,
+          comments: paper.comments || "",
+        });
       }
     }
 
-    const gpa = failed
-      ? 0.0
-      : parseFloat((totalPoints / updatedSubjects.length).toFixed(2));
-    const overallGrade = failed ? "F" : getOverallGradeFromGPA(gpa);
+    // ✅ GPA calculation
+    const { gpa: computedGPA, anyFail } = computeFinalGPA(updatedSubjects);
+    const finalFailed = failed || anyFail;
+    const gpa = finalFailed ? 0.0 : computedGPA;
+    const overallGrade = finalFailed ? "F" : getOverallGradeFromGPA(gpa);
 
-    const updated = await Result.findByIdAndUpdate(
-      resultId,
-      {
-        student: student ?? existingResult.student,
-        semester: semester ?? existingResult.semester,
-        year: year ?? existingResult.year,
-        subjects: updatedSubjects,
-        gpa,
-        overallGrade,
-      },
-      { new: true }
-    );
+    // Update in DB
+    if (student) {
+      // Convert to ObjectId if it's a string
+      const mongoose = require("mongoose");
+      existing.student =
+        typeof student === "string"
+          ? new mongoose.Types.ObjectId(student)
+          : student;
+    }
+    existing.semester = semester || existing.semester;
+    existing.year = year !== undefined ? Number(year) : existing.year;
+    existing.subjects = updatedSubjects;
+    existing.gpa = gpa;
+    existing.overallGrade = overallGrade;
 
-    return res.json({
-      message: "Result updated successfully",
-      result: updated,
-    });
+    await existing.save();
+
+    return res
+      .status(200)
+      .json({ message: "Result updated", result: existing });
   } catch (error) {
     console.error("Update Result Error:", error);
     res.status(500).json({ message: "Failed to update result", error });

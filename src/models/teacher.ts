@@ -21,6 +21,9 @@ const teacherSchema = new Schema(
     profileImg: String,
     specialization: [String],
     skills: [skillSchema],
+    department: String,
+    employeeId: String,
+    joiningDate: Date,
   },
   { timestamps: true }
 );
